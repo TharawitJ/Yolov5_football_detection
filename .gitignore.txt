@@ -1,3 +1,6 @@
 models/
 input/
 output/
+
+*__pycahce__*
+*.pyc
