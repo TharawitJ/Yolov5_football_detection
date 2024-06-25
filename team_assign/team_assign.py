@@ -7,12 +7,13 @@ class TeamAssigner:
         self.team_colors = defaultdict(list)
         self.player_team_dict = {} # to separate player's team
 
+    # KMeans Model
     def get_clustering_model(self, img):
-        # reshape to 2D array
-        img_2d = img.reshape(-1,3)  
+        img_2d = img.reshape(-1,3)  # reshape to 2D array
         kmeans_model = KMeans(n_clusters=2, init="k-means++", n_init=1).fit(img_2d)
         return kmeans_model
-
+    
+    # Apply model to get player shirt color
     def get_player_color(self, frame, bbox):
         img = frame[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]
         top_half = img[0: int(img.shape[0]/2),:]
@@ -33,6 +34,7 @@ class TeamAssigner:
 
         return player_color
 
+    # Apply color
     def assign_team(self, frame, player_detection):
         player_colors = []
         for _,player_detection in player_detection.items():
@@ -54,9 +56,6 @@ class TeamAssigner:
         player_color = self.get_player_color(frame,player_bbox)
         team_id = self.kmeans_model.predict(player_color.reshape(1,-1))[0]
         team_id += 1
-
         self.player_team_dict[player_id] = team_id
 
         return team_id
-
-

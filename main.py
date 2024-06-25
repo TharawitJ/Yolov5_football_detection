@@ -2,8 +2,9 @@ import cv2
 from utils import read_video, save_video
 from tracker import Tracker
 from team_assign import TeamAssigner
+from player_ball_assigner import PlayerBallAssigner
 
-
+# to Execute
 def main():
     # Read
     file_name = '08fd33_4'
@@ -23,7 +24,10 @@ def main():
     #     cv2.imwrite(f'output/crop_img.jpg',crop_img)
     #     break # need one img
 
-    # Assign player team
+    # Interpolate Ball Position
+    tracks['ball'] = tracker.interpolate_ball(tracks['ball'])
+
+    # Assign colors
     team_assign = TeamAssigner()
     team_assign.assign_team(video_frame[0], tracks['players'][0])
 
@@ -32,6 +36,16 @@ def main():
             team = team_assign.get_player_team(video_frame[frame_num], track['bbox'], player_id)
             tracks['players'][frame_num][player_id]['team'] = team
             tracks['players'][frame_num][player_id]['team_color'] = team_assign.team_colors[team]
+
+    # Assign ball
+    player_assigner = PlayerBallAssigner()
+    for frame_num, player_track in enumerate(tracks['players']):
+        ball_bbox = tracks['ball'][frame_num][1]['bbox']
+        assign_player = player_assigner.ball_to_player(player_track, ball_bbox)
+
+        if assign_player != -1:
+            tracks['players'][frame_num][assign_player]['has_ball'] = True
+
 
     # Draw output
     output_video_frames = tracker.draw_annotations(video_frame, tracks)
